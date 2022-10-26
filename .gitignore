@@ -1,0 +1,6 @@
+__pycache__
+/test*.py
+/test_config.json
+/Pipfile.lock
+/test.*
+/*.pem

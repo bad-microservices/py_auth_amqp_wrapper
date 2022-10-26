@@ -1,0 +1,96 @@
+{
+    "jwt_validation": [
+        {
+            "name": "auth_service1",
+            "secret": {
+                "type": "plain",
+                "value": "example_hmac_secret"
+            },
+            "methods": [
+                "HS256",
+                "HS384",
+                "HS512"
+            ]
+        },
+        {
+            "name": "auth_service2",
+            "secret": {
+                "type": "keyfile",
+                "value": "/path/to/public/key.pem"
+            },
+            "methods": [
+                "RS256",
+                "RS384",
+                "RS512"
+            ]
+        },
+        {
+            "name": "auth_service3",
+            "secret": {
+                "type": "base64plain",
+                "value": "dGVzdDEyMw=="
+            },
+            "methods": [
+                "HS256",
+                "HS384",
+                "HS512"
+            ]
+        },
+        {
+            "name": "auth_service4",
+            "secret": {
+                "type": "base64key",
+                "value": "LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCgotLS0tLUVORCBSU0EgUFVCTElDIEtFWS0tLS0t"
+            },
+            "methods": [
+                "HS256",
+                "HS384",
+                "HS512"
+            ]
+        }
+    ],
+    "jwt_creation":{
+        "issuer":"auth_service2",
+        "signmethod":"RS512",
+        "secret":{
+            "type":"keyfile",
+            "value":"/path/to/file",
+            "secret":"my_key_passphrase"
+        }
+    },
+    "ldap_settings":{
+        "address":"ldaps://exampledc.example.local:636",
+        "base_dn":"ou=Users,dc=example,dc=local",
+        "group":"need_this_group_to_login",
+        "groups_prefix":"service_",
+        "domain":"EXAMPLE",
+        "ca_file":"/path/to/ca/file.pem"
+    },
+    "db_settings":{
+        "database":"example_db",
+        "user":"example_user",
+        "password":"supersecretpassword",
+        "port":3306,
+        "host":"127.0.0.1",
+        "ca_file":"/if/you/want/ssl/specify/this"
+    },
+    "amqp_settings":{
+        "host":"127.0.0.1",
+        "port":5672,
+        "username":"exampleuser",
+        "password":"example_pw",
+        "vhost":"/",
+        "connection_name":"auth_service2",
+        "ca_file":"/path/to/ca/file"
+    },
+    "app_config":{
+        "id_token_valid_time": 1440,
+        "access_token_valid_time": 5,
+        "allow_registration": false,
+        "auto_activate_accounts": true,
+        "admin_group": "admin",
+        "username_regex": "[a-zA-Z-_0-9]{4,30}",
+        "password_regex": ".{4,}",
+        "email_regex": "[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)"
+    }
+}
