@@ -43,9 +43,9 @@
                 "value": "LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCgotLS0tLUVORCBSU0EgUFVCTElDIEtFWS0tLS0t"
             },
             "methods": [
-                "HS256",
-                "HS384",
-                "HS512"
+                "RS256",
+                "RS384",
+                "RS512"
             ]
         }
     ],
@@ -54,7 +54,7 @@
         "signmethod":"RS512",
         "secret":{
             "type":"keyfile",
-            "value":"/path/to/file",
+            "value":"/path/to/private/key",
             "secret":"my_key_passphrase"
         }
     },
@@ -92,5 +92,20 @@
         "username_regex": "[a-zA-Z-_0-9]{4,30}",
         "password_regex": ".{4,}",
         "email_regex": "[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)"
+    },
+    "queue_settings":{
+        "session_workflow_login":"login",
+        "session_workflow_logout":"logout",
+        "session_workflow_get_access_token":"token",
+        "user_workflow_register_user":"user_register",
+        "user_workflow_admin_create_user":"user_admin_create",
+        "user_workflow_delete_user":"user_delete",
+        "user_workflow_change_user":"user_change",
+        "user_workflow_get_all":"user_all",
+        "user_workflow_get_user":"user_get",
+        "group_workflow_add_user_to_group":"group_add_user",
+        "group_workflow_remove_user_from_group":"group_remove_user",
+        "group_workflow_create_group":"group_create",
+        "group_workflow_delete_group":"group_delete"
     }
 }

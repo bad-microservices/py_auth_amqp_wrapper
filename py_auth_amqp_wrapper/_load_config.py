@@ -23,8 +23,25 @@ def load_config(path_to_file: str) -> dict:
     db_settings = raw_config.get("db_settings", None)
     amqp_settings = raw_config.get("amqp_settings", None)
     app_config = raw_config.get("app_config", None)
+    queue_settings = raw_config.get("queue_settings", None)
 
     config_dict = {}
+
+    default_queue_names = {
+        "session_workflow_login": "login",
+        "session_workflow_logout": "logout",
+        "session_workflow_get_access_token": "token",
+        "user_workflow_register_user": "user_register",
+        "user_workflow_admin_create_user": "user_admin_create",
+        "user_workflow_delete_user": "user_delete",
+        "user_workflow_change_user": "user_change",
+        "user_workflow_get_all": "user_all",
+        "user_workflow_get_user": "user_get",
+        "group_workflow_add_user_to_group": "group_add_user",
+        "group_workflow_remove_user_from_group": "group_remove_user",
+        "group_workflow_create_group": "group_create",
+        "group_workflow_delete_group": "group_delete",
+    }
 
     if jwt_validation is not None:
         jwt_validator = JWTValidator()
@@ -90,5 +107,11 @@ def load_config(path_to_file: str) -> dict:
 
     if amqp_settings is not None:
         config_dict["amqp_config"] = AMQPConfig(**amqp_settings)
+
+    if queue_settings is not None:
+        for key, value in queue_settings.items():
+            default_queue_names[key] = value
+
+    config_dict["queue_settings"] = default_queue_names
 
     return config_dict
