@@ -1,7 +1,7 @@
 __pycache__
-/test*.py
-/test_config.json
 /Pipfile.lock
 /test.*
+test*.py
+/test*.json
 /*.pem
 /.vscode

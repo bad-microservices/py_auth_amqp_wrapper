@@ -107,5 +107,19 @@
         "group_workflow_remove_user_from_group":"group_remove_user",
         "group_workflow_create_group":"group_create",
         "group_workflow_delete_group":"group_delete"
+    },
+    "log_settings":{
+        "level":"DEBUG",
+        "handler":"amqp_helper.AMQPLogHandler",
+        "handler_settings":{
+            "amqp":{
+                "host":"127.0.0.1",
+                "port":5672,
+                "username":"exampleuser",
+                "password":"example_pw",
+                "vhost":"log",
+                "connection_name":"auth_log_service"
+            }
+        }
     }
 }

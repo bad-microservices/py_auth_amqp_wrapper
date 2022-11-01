@@ -18,6 +18,8 @@ def cli() -> Optional[str]:
     )
     parser.add_argument("--config","-c",help="path to the configuration file", default="./config.json",type=str)
     parser.add_argument("--version","-v",help="displays the package version and quits",action="store_true")
+    parser.add_argument("--disable_logger_aio_pika","-a",help="disables the aio_pika logger",action="store_true")
+    parser.add_argument("--disable_logger_tortoise_orm","-t",help="disables the tortoise orm logger",action="store_true")
     
     inputvars = parser.parse_args()
 
@@ -25,13 +27,13 @@ def cli() -> Optional[str]:
         print(f"py_auth_micro=={__version__}")
         return None
 
-    return inputvars.config
+    return inputvars.config, inputvars.disable_logger_aio_pika,inputvars.disable_logger_tortoise_orm
 
 
 if __name__ == "__main__":
-    val = cli()
+    config, disable_aio_pika, disable_tortoise_orm = cli()
 
-    if val is None:
+    if config is None:
         sys.exit(0)
 
         # configure DB
@@ -48,13 +50,15 @@ py_auth_amqp_wrapper: {__version__}
  
 Starting Up!""")
 
-    print(f"loading config file: '{val}'")
+    print(f"loading config file: '{config}'")
     try:
-        config = load_config(val)
-    except Exception:
+        config = load_config(config)
+    except Exception as exc:
+        print(exc)
         print("could not load config")
         sys.exit(78)
     print("loaded config")
     print("\n\nstarting up")
-    asyncio.run(run(**config))
+    print(disable_aio_pika,disable_tortoise_orm)
+    asyncio.run(run(**config,disable_aio_pika=disable_aio_pika,disable_tortoise_orm = disable_tortoise_orm))
 

@@ -1,10 +1,13 @@
 import json
 import base64
+import logging
 
 from jwt_helper import Issuer, load_key_from_disk, JWTEncoder, JWTValidator, SignMethod
 from py_auth_micro.Config import DBConfig, AppConfig, LDAPConfig
 from amqp_helper import AMQPConfig
 from pathlib import Path
+
+from ._getlogger import getlogger
 
 SECRET_METHODS = {
     "plain": lambda val: val,
@@ -24,6 +27,7 @@ def load_config(path_to_file: str) -> dict:
     amqp_settings = raw_config.get("amqp_settings", None)
     app_config = raw_config.get("app_config", None)
     queue_settings = raw_config.get("queue_settings", None)
+    log_settings = raw_config.get("log_settings", None)
 
     config_dict = {}
 
@@ -112,6 +116,34 @@ def load_config(path_to_file: str) -> dict:
         for key, value in queue_settings.items():
             default_queue_names[key] = value
 
+    if log_settings is not None:
+
+        LEVELMAP = {
+            "NOTSET": logging.NOTSET,
+            "DEBUG": logging.DEBUG,
+            "INFO": logging.INFO,
+            "WARNING": logging.WARNING,
+            "ERROR": logging.ERROR,
+            "CRITICAL": logging.CRITICAL,
+        }
+
+        if log_settings.get("disable_aio_pika",False):
+            pass
+            
+        if log_settings.get("disable_tortoise_orm",False):
+            logging.getLogger("db_client").disabled = True
+            logging.getLogger("tortoise").disabled = True
+
+        level = LEVELMAP[log_settings.get("level", "INFO")]
+        handler = log_settings.get("handler", None)
+        handler_settings = log_settings.get("handler_settings", {})
+        print(handler_settings)
+        if handler_settings.get("amqp", None) is not None:
+            amqp_settings = AMQPConfig(**handler_settings["amqp"])
+            handler_settings = {"amqp_config":amqp_settings}
+
+        config_dict["logger"] = getlogger(level,handler,handler_settings)
+    
     config_dict["queue_settings"] = default_queue_names
 
     return config_dict

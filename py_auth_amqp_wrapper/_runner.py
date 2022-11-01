@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from tortoise import Tortoise
 from aio_pika import connect_robust
@@ -19,6 +20,9 @@ async def run(
     app_config: AppConfig = AppConfig,
     ldap_config: LDAPConfig = None,
     amqp_config: AMQPConfig = AMQPConfig,
+    logger: logging.Logger = None,
+    disable_aio_pika:bool = False,
+    disable_tortoise_orm:bool = False
 ):
     await Tortoise.init(
         config={
@@ -31,7 +35,8 @@ async def run(
             },
         }
     )
-
+    logger.info("started")
+    logging.root = logger
     sessionwf = SessionWorkflow(ldap_config, jwt_encoder, jwt_validator, app_config)
     userwf = UserWorkflow(jwt_validator, app_config)
     groupwf = GroupWorkflow(jwt_validator, app_config)
@@ -39,6 +44,7 @@ async def run(
     connection = await connect_robust(**amqp_config.aio_pika())
 
     channel = await connection.channel()
+    
     rpc = await JsonRPC.create(channel)
 
     ######################
@@ -46,7 +52,6 @@ async def run(
     # Session Workflows
     #
     ######################
-
     await rpc.register(
         queue_settings["session_workflow_get_access_token"],
         sessionwf.get_access_token,
@@ -153,10 +158,18 @@ async def run(
         timeout=5,
     )
 
-    print("started")
+
+    logging.getLogger("aio_pika").disabled = disable_aio_pika
+    logging.getLogger("db_client").disabled = disable_tortoise_orm
+    logging.getLogger("tortoise").disabled = disable_tortoise_orm
+
+    print(logging.root.manager.loggerDict.keys())
+
+    print(__name__)
     try:
         await asyncio.Future()
     finally:
         await connection.close()
+        print("wtf")
 
     pass
