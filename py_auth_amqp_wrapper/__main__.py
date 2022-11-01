@@ -18,8 +18,7 @@ def cli() -> Optional[str]:
     )
     parser.add_argument("--config","-c",help="path to the configuration file", default="./config.json",type=str)
     parser.add_argument("--version","-v",help="displays the package version and quits",action="store_true")
-    parser.add_argument("--disable_logger_aio_pika","-a",help="disables the aio_pika logger",action="store_true")
-    parser.add_argument("--disable_logger_tortoise_orm","-t",help="disables the tortoise orm logger",action="store_true")
+    parser.add_argument("--disable_existing_loggers","-d",help="disables existing loggers",action="store_true")
     
     inputvars = parser.parse_args()
 
@@ -27,11 +26,10 @@ def cli() -> Optional[str]:
         print(f"py_auth_micro=={__version__}")
         return None
 
-    return inputvars.config, inputvars.disable_logger_aio_pika,inputvars.disable_logger_tortoise_orm
-
+    return inputvars.config, inputvars.disable_existing_loggers
 
 if __name__ == "__main__":
-    config, disable_aio_pika, disable_tortoise_orm = cli()
+    config, disable_existing_loggers = cli()
 
     if config is None:
         sys.exit(0)
@@ -59,6 +57,5 @@ Starting Up!""")
         sys.exit(78)
     print("loaded config")
     print("\n\nstarting up")
-    print(disable_aio_pika,disable_tortoise_orm)
-    asyncio.run(run(**config,disable_aio_pika=disable_aio_pika,disable_tortoise_orm = disable_tortoise_orm))
+    asyncio.run(run(**config,disable_existing_loggers=disable_existing_loggers))
 

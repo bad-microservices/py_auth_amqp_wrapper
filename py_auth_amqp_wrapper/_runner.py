@@ -10,6 +10,8 @@ from amqp_helper import AMQPConfig
 from py_auth_micro.Config import DBConfig, AppConfig, LDAPConfig
 from py_auth_micro.WorkFlows import SessionWorkflow, UserWorkflow, GroupWorkflow
 
+from ._getlogger import getlogger
+
 
 async def run(
     *,
@@ -20,9 +22,8 @@ async def run(
     app_config: AppConfig = AppConfig,
     ldap_config: LDAPConfig = None,
     amqp_config: AMQPConfig = AMQPConfig,
-    logger: logging.Logger = None,
-    disable_aio_pika:bool = False,
-    disable_tortoise_orm:bool = False
+    log_config: logging.Logger = None,
+    disable_existing_loggers=False,
 ):
     await Tortoise.init(
         config={
@@ -35,8 +36,7 @@ async def run(
             },
         }
     )
-    logger.info("started")
-    logging.root = logger
+
     sessionwf = SessionWorkflow(ldap_config, jwt_encoder, jwt_validator, app_config)
     userwf = UserWorkflow(jwt_validator, app_config)
     groupwf = GroupWorkflow(jwt_validator, app_config)
@@ -44,7 +44,7 @@ async def run(
     connection = await connect_robust(**amqp_config.aio_pika())
 
     channel = await connection.channel()
-    
+
     rpc = await JsonRPC.create(channel)
 
     ######################
@@ -158,18 +158,14 @@ async def run(
         timeout=5,
     )
 
+    if log_config is not None:
+        logger = getlogger(
+            **log_config, disable_existing_loggers=disable_existing_loggers
+        )
+        logger.info("test")
 
-    logging.getLogger("aio_pika").disabled = disable_aio_pika
-    logging.getLogger("db_client").disabled = disable_tortoise_orm
-    logging.getLogger("tortoise").disabled = disable_tortoise_orm
-
-    print(logging.root.manager.loggerDict.keys())
-
-    print(__name__)
     try:
         await asyncio.Future()
     finally:
         await connection.close()
-        print("wtf")
-
-    pass
+    

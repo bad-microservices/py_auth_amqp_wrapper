@@ -137,12 +137,12 @@ def load_config(path_to_file: str) -> dict:
         level = LEVELMAP[log_settings.get("level", "INFO")]
         handler = log_settings.get("handler", None)
         handler_settings = log_settings.get("handler_settings", {})
-        print(handler_settings)
+
         if handler_settings.get("amqp", None) is not None:
             amqp_settings = AMQPConfig(**handler_settings["amqp"])
             handler_settings = {"amqp_config":amqp_settings}
 
-        config_dict["logger"] = getlogger(level,handler,handler_settings)
+        config_dict["log_config"] = {"log_level":level,"handler":handler,"handler_config":handler_settings}
     
     config_dict["queue_settings"] = default_queue_names
 
