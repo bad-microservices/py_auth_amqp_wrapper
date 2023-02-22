@@ -25,6 +25,19 @@ async def run(
     log_config: logging.Logger = None,
     disable_existing_loggers=False,
 ):
+    """This Function will run out auth_service
+
+    Args:
+        queue_settings (dict): Settings for the QUEUE-Names to use
+        jwt_encoder (JWTEncoder, optional): JWT Encoder used for creating JWTs. Defaults to None.
+        jwt_validator (JWTValidator, optional): JWTValidator used to verify JWTS. Defaults to None.
+        db_config (DBConfig, optional): Database Configuration. Defaults to DBConfig.
+        app_config (AppConfig, optional): General App Settings. Defaults to AppConfig.
+        ldap_config (LDAPConfig, optional): Configuration for LDAP Interactions. Defaults to None.
+        amqp_config (AMQPConfig, optional): Configuration for the AMQP Protocoll. Defaults to AMQPConfig.
+        log_config (logging.Logger, optional): If given will configure the root logger. Defaults to None.
+        disable_existing_loggers (bool, optional): Disables existing loggers. Defaults to False.
+    """
     await Tortoise.init(
         config={
             "connections": db_config.to_dict("default"),

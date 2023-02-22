@@ -18,6 +18,19 @@ SECRET_METHODS = {
 
 
 def load_config(path_to_file: str) -> dict:
+    """This Functions loads our Json Config and converts it into an dict.
+
+    Some Configuration Parts will be converted into the corresponding config clases like LDAPConfig, APPConfig, DBConfig and AMQPConfig.
+
+    Args:
+        path_to_file (str): Filepath of the configuration File
+
+    Raises:
+        ValueError: If a Config Part is missing or invalid
+
+    Returns:
+        dict: Dictionary Containing all relevant Configuration Parts
+    """
     raw_config: dict = json.loads(Path(path_to_file).read_text())
 
     jwt_validation = raw_config.get("jwt_validation", None)
