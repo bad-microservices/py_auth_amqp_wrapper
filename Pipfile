@@ -11,6 +11,9 @@ amqp_helper = ">0.0.6"
 
 [dev-packages]
 black = "*"
+build = "*"
+setuptools = "*"
+twine = "*"
 
 [requires]
 python_version = "3.9"
