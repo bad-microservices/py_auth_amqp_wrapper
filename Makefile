@@ -17,4 +17,4 @@ devdeps:
 
 package: devdeps
 	rm -fR dist/
-	pipenv run python -m build
+	pipenv run python -m build -n
