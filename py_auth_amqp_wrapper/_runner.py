@@ -6,7 +6,7 @@ from aio_pika import connect_robust
 from aio_pika.patterns import JsonRPC
 
 from jwt_helper import JWTEncoder, JWTValidator
-from amqp_helper import AMQPConfig
+from amqp_helper import AMQPConfig, AMQPService, new_amqp_func
 from py_auth_micro.Config import DBConfig, AppConfig, LDAPConfig
 from py_auth_micro.WorkFlows import SessionWorkflow, UserWorkflow, GroupWorkflow
 
@@ -25,7 +25,7 @@ async def run(
     log_config: logging.Logger = None,
     disable_existing_loggers=False,
 ):
-    """This Function will run out auth_service
+    """This Function will run the auth_service
 
     Args:
         queue_settings (dict): Settings for the QUEUE-Names to use
@@ -54,11 +54,57 @@ async def run(
     userwf = UserWorkflow(jwt_validator, app_config)
     groupwf = GroupWorkflow(jwt_validator, app_config)
 
-    connection = await connect_robust(**amqp_config.aio_pika())
+    # connection = await connect_robust(**amqp_config.aio_pika())
 
-    channel = await connection.channel()
+    # channel = await connection.channel()
 
-    rpc = await JsonRPC.create(channel)
+    # rpc = await JsonRPC.create(channel)
+
+    session_workflow_get_access_token = new_amqp_func(
+        queue_settings["session_workflow_get_access_token"], sessionwf.get_access_token
+    )
+    session_workflow_login = new_amqp_func(
+        queue_settings["session_workflow_login"], sessionwf.login
+    )
+    session_workflow_logout = new_amqp_func(
+        queue_settings["session_workflow_logout"], sessionwf.logout
+    )
+
+    @session_workflow_logout.exception_handler(TypeError)
+    @session_workflow_login.exception_handler(TypeError)
+    @session_workflow_get_access_token.exception_handler(TypeError)
+    async def handle_exception(*args, exc:Exception, **kwargs):
+        print(type(exc),exc)
+        print(args)
+        print(kwargs)
+        return {"resp_code": 400, "resp_data": {"msg": "Invalid Data"}}
+
+    @session_workflow_login.exception_handler(ValueError,PermissionError)
+    async def handle_login_fail(*args, exc:Exception, **kwargs):
+        print(type(exc),exc)
+        return {"resp_code": 401, "resp_data": {"msg": "Could not login"}}
+
+    @session_workflow_logout.exception_handler(Exception)
+    @session_workflow_login.exception_handler(Exception)
+    @session_workflow_get_access_token.exception_handler(Exception)
+    async def handle_exception(*args, exc:Exception, **kwargs):
+        print(type(exc),exc)
+        return {"resp_code": 500, "resp_data": {"msg": "something went wrong"}}
+
+
+
+
+
+
+    service = await AMQPService().connect(amqp_config)
+
+    await service.register_function(session_workflow_get_access_token)
+    await service.register_function(session_workflow_login)
+    await service.register_function(session_workflow_logout)
+
+    await service.serve()
+
+    return
 
     ######################
     #
@@ -181,4 +227,3 @@ async def run(
         await asyncio.Future()
     finally:
         await connection.close()
-    
