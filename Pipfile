@@ -5,9 +5,9 @@ name = "pypi"
 
 [packages]
 aio-pika = "*"
-py_auth_micro = ">=0.0.6"
+py_auth_micro = ">0.0.6"
 jwt_helper = "*"
-amqp_helper = ">0.0.6"
+amqp_helper = ">0.0.8"
 
 [dev-packages]
 black = "*"
