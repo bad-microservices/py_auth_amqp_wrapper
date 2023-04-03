@@ -50,16 +50,14 @@ async def run(
         }
     )
 
+    logger = logging.getLogger("py_auth_amqp_wrapper")
+    if log_config is not None:
+        logger = getlogger(
+            **log_config, disable_existing_loggers=disable_existing_loggers
+        )
+        logger.info("setup logger")
+
     sessionwf = SessionWorkflow(ldap_config, jwt_encoder, jwt_validator, app_config)
-    userwf = UserWorkflow(jwt_validator, app_config)
-    groupwf = GroupWorkflow(jwt_validator, app_config)
-
-    # connection = await connect_robust(**amqp_config.aio_pika())
-
-    # channel = await connection.channel()
-
-    # rpc = await JsonRPC.create(channel)
-
     session_workflow_get_access_token = new_amqp_func(
         queue_settings["session_workflow_get_access_token"], sessionwf.get_access_token
     )
@@ -70,160 +68,91 @@ async def run(
         queue_settings["session_workflow_logout"], sessionwf.logout
     )
 
+    userwf = UserWorkflow(jwt_validator, app_config)
+    user_workflow_admin_create_user = new_amqp_func(
+        queue_settings["user_workflow_admin_create_user"], userwf.admin_create_user
+    )
+    user_workflow_register_user = new_amqp_func(
+        queue_settings["user_workflow_register_user"], userwf.register_user
+    )
+    user_workflow_delete_user = new_amqp_func(
+        queue_settings["user_workflow_delete_user"], userwf.delete_user
+    )
+    user_workflow_change_user = new_amqp_func(
+        queue_settings["user_workflow_change_user"], userwf.change_user
+    )
+    user_workflow_get_all = new_amqp_func(
+        queue_settings["user_workflow_get_all"], userwf.get_all
+    )
+    user_workflow_get_user = new_amqp_func(
+        queue_settings["user_workflow_get_user"], userwf.get_user
+    )
+
+    groupwf = GroupWorkflow(jwt_validator, app_config)
+    group_workflow_add_user_to_group = new_amqp_func(
+        queue_settings["group_workflow_add_user_to_group"], groupwf.add_user_to_group
+    )
+    group_workflow_remove_user_from_group = new_amqp_func(
+        queue_settings["group_workflow_remove_user_from_group"],
+        groupwf.remove_user_from_group,
+    )
+    group_workflow_create_group = new_amqp_func(
+        queue_settings["group_workflow_create_group"], groupwf.create_group
+    )
+    group_workflow_delete_group = new_amqp_func(
+        queue_settings["group_workflow_delete_group"], groupwf.delete_group
+    )
+
     @session_workflow_logout.exception_handler(TypeError)
     @session_workflow_login.exception_handler(TypeError)
     @session_workflow_get_access_token.exception_handler(TypeError)
-    async def handle_exception(*args, exc:Exception, **kwargs):
-        print(type(exc),exc)
+    async def handle_exception(*args, exc: Exception, **kwargs):
+        print(type(exc), exc)
         print(args)
         print(kwargs)
         return {"resp_code": 400, "resp_data": {"msg": "Invalid Data"}}
 
-    @session_workflow_login.exception_handler(ValueError,PermissionError)
-    async def handle_login_fail(*args, exc:Exception, **kwargs):
-        print(type(exc),exc)
+    @session_workflow_login.exception_handler(ValueError, PermissionError)
+    async def handle_login_fail(*args, exc: Exception, **kwargs):
+        print(type(exc), exc)
         return {"resp_code": 401, "resp_data": {"msg": "Could not login"}}
 
+    @user_workflow_admin_create_user.exception_handler(Exception)
+    @user_workflow_register_user.exception_handler(Exception)
+    @user_workflow_delete_user.exception_handler(Exception)
+    @user_workflow_change_user.exception_handler(Exception)
+    @user_workflow_get_all.exception_handler(Exception)
+    @user_workflow_get_user.exception_handler(Exception)
+    @group_workflow_add_user_to_group.exception_handler(Exception)
+    @group_workflow_remove_user_from_group.exception_handler(Exception)
+    @group_workflow_create_group.exception_handler(Exception)
+    @group_workflow_delete_group.exception_handler(Exception)
     @session_workflow_logout.exception_handler(Exception)
     @session_workflow_login.exception_handler(Exception)
     @session_workflow_get_access_token.exception_handler(Exception)
-    async def handle_exception(*args, exc:Exception, **kwargs):
-        print(type(exc),exc)
+    async def handle_exception(*args, exc: Exception, **kwargs):
+        logger.error(type(exc),exc)
+        logger.error(str(kwargs))
         return {"resp_code": 500, "resp_data": {"msg": "something went wrong"}}
-
-
-
-
-
 
     service = await AMQPService().connect(amqp_config)
 
     await service.register_function(session_workflow_get_access_token)
     await service.register_function(session_workflow_login)
     await service.register_function(session_workflow_logout)
+    await service.register_function(user_workflow_admin_create_user)
+    await service.register_function(user_workflow_register_user)
+    await service.register_function(user_workflow_delete_user)
+    await service.register_function(user_workflow_change_user)
+    await service.register_function(user_workflow_get_all)
+    await service.register_function(user_workflow_get_user)
+    await service.register_function(group_workflow_add_user_to_group)
+    await service.register_function(group_workflow_remove_user_from_group)
+    await service.register_function(group_workflow_create_group)
+    await service.register_function(group_workflow_delete_group)
+
+    
 
     await service.serve()
 
     return
-
-    ######################
-    #
-    # Session Workflows
-    #
-    ######################
-    await rpc.register(
-        queue_settings["session_workflow_get_access_token"],
-        sessionwf.get_access_token,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-    await rpc.register(
-        queue_settings["session_workflow_login"],
-        sessionwf.login,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-    await rpc.register(
-        queue_settings["session_workflow_logout"],
-        sessionwf.logout,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-
-    ######################
-    #
-    # User Workflows
-    #
-    ######################
-
-    await rpc.register(
-        queue_settings["user_workflow_admin_create_user"],
-        userwf.admin_create_user,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-    await rpc.register(
-        queue_settings["user_workflow_register_user"],
-        userwf.register_user,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-    await rpc.register(
-        queue_settings["user_workflow_delete_user"],
-        userwf.delete_user,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-    await rpc.register(
-        queue_settings["user_workflow_change_user"],
-        userwf.change_user,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-    await rpc.register(
-        queue_settings["user_workflow_get_all"],
-        userwf.get_all,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-    await rpc.register(
-        queue_settings["user_workflow_get_user"],
-        userwf.get_user,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-
-    ######################
-    #
-    # Group Workflows
-    #
-    ######################
-
-    await rpc.register(
-        queue_settings["group_workflow_add_user_to_group"],
-        groupwf.add_user_to_group,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-    await rpc.register(
-        queue_settings["group_workflow_remove_user_from_group"],
-        groupwf.remove_user_from_group,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-    await rpc.register(
-        queue_settings["group_workflow_create_group"],
-        groupwf.create_group,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-    await rpc.register(
-        queue_settings["group_workflow_delete_group"],
-        groupwf.delete_group,
-        auto_delete=True,
-        durable=True,
-        timeout=5,
-    )
-
-    if log_config is not None:
-        logger = getlogger(
-            **log_config, disable_existing_loggers=disable_existing_loggers
-        )
-        logger.info("test")
-
-    try:
-        await asyncio.Future()
-    finally:
-        await connection.close()
