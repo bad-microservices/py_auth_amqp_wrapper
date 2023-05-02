@@ -57,7 +57,8 @@ async def run(
         )
         logger.info("setup logger")
 
-    sessionwf = SessionWorkflow(ldap_config, jwt_encoder, jwt_validator, app_config)
+    sessionwf = SessionWorkflow(
+        ldap_config, jwt_encoder, jwt_validator, app_config)
     session_workflow_get_access_token = new_amqp_func(
         queue_settings["session_workflow_get_access_token"], sessionwf.get_access_token
     )
@@ -131,7 +132,7 @@ async def run(
     @session_workflow_login.exception_handler(Exception)
     @session_workflow_get_access_token.exception_handler(Exception)
     async def handle_exception(*args, exc: Exception, **kwargs):
-        logger.error(type(exc),exc)
+        logger.error(type(exc), exc)
         logger.error(str(kwargs))
         return {"resp_code": 500, "resp_data": {"msg": "something went wrong"}}
 
@@ -150,8 +151,6 @@ async def run(
     await service.register_function(group_workflow_remove_user_from_group)
     await service.register_function(group_workflow_create_group)
     await service.register_function(group_workflow_delete_group)
-
-    
 
     await service.serve()
 
