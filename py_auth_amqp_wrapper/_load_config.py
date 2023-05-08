@@ -140,10 +140,10 @@ def load_config(path_to_file: str) -> dict:
             "CRITICAL": logging.CRITICAL,
         }
 
-        if log_settings.get("disable_aio_pika",False):
+        if log_settings.get("disable_aio_pika", False):
             pass
-            
-        if log_settings.get("disable_tortoise_orm",False):
+
+        if log_settings.get("disable_tortoise_orm", False):
             logging.getLogger("db_client").disabled = True
             logging.getLogger("tortoise").disabled = True
 
@@ -153,10 +153,11 @@ def load_config(path_to_file: str) -> dict:
 
         if handler_settings.get("amqp", None) is not None:
             amqp_settings = AMQPConfig(**handler_settings["amqp"])
-            handler_settings = {"amqp_config":amqp_settings}
+            handler_settings = {"amqp_config": amqp_settings}
 
-        config_dict["log_config"] = {"log_level":level,"handler":handler,"handler_config":handler_settings}
-    
+        config_dict["log_config"] = {
+            "log_level": level, "handler": handler, "handler_config": handler_settings}
+
     config_dict["queue_settings"] = default_queue_names
 
     return config_dict
