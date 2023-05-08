@@ -1,9 +1,7 @@
-import asyncio
 import logging
+import traceback
 
 from tortoise import Tortoise
-from aio_pika import connect_robust
-from aio_pika.patterns import JsonRPC
 
 from jwt_helper import JWTEncoder, JWTValidator
 from amqp_helper import AMQPConfig, AMQPService, new_amqp_func
@@ -57,8 +55,7 @@ async def run(
         )
         logger.info("setup logger")
 
-    sessionwf = SessionWorkflow(
-        ldap_config, jwt_encoder, jwt_validator, app_config)
+    sessionwf = SessionWorkflow(ldap_config, jwt_encoder, jwt_validator, app_config)
     session_workflow_get_access_token = new_amqp_func(
         queue_settings["session_workflow_get_access_token"], sessionwf.get_access_token
     )
@@ -108,14 +105,12 @@ async def run(
     @session_workflow_login.exception_handler(TypeError)
     @session_workflow_get_access_token.exception_handler(TypeError)
     async def handle_exception(*args, exc: Exception, **kwargs):
-        print(type(exc), exc)
-        print(args)
-        print(kwargs)
+        logger.exception(exc, kwargs)
         return {"resp_code": 400, "resp_data": {"msg": "Invalid Data"}}
 
     @session_workflow_login.exception_handler(ValueError, PermissionError)
     async def handle_login_fail(*args, exc: Exception, **kwargs):
-        print(type(exc), exc)
+        logger.exception(exc, kwargs)
         return {"resp_code": 401, "resp_data": {"msg": "Could not login"}}
 
     @user_workflow_admin_create_user.exception_handler(Exception)
@@ -132,9 +127,8 @@ async def run(
     @session_workflow_login.exception_handler(Exception)
     @session_workflow_get_access_token.exception_handler(Exception)
     async def handle_exception(*args, exc: Exception, **kwargs):
-        logger.error(type(exc), exc)
-        logger.error(str(kwargs))
-        return {"resp_code": 500, "resp_data": {"msg": "something went wrong"}}
+        logger.exception(exc, kwargs)
+        return {"resp_code": 500, "resp_data": {"msg": f"something went wrong! {exc}"}}
 
     service = await AMQPService().connect(amqp_config)
 
