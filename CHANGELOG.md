@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.0.5
+* BUGFIX: _create_user only takes KW arguments which i forgot...
 ## 0.0.4
 * Formating...
 ## 0.0.3
