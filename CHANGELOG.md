@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.0.6
+* `logger.exception` for exception logging isntead of print
 ## 0.0.5
 * BUGFIX: _create_user only takes KW arguments which i forgot...
 ## 0.0.4
