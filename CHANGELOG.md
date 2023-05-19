@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.7
+* `GroupWorkflow.group_members` implemented
+  * `group_workflow_group_members` is config key for queue name
+* `GroupWorkflow.get_groups` implemented
+  * `group_workflow_get_groups` is config key for queue name
+* implemented cli switch for generating the database `-g`
 ## 0.0.6
 * `logger.exception` for exception logging isntead of print
 ## 0.0.5

@@ -106,7 +106,9 @@
         "group_workflow_add_user_to_group":"group_add_user",
         "group_workflow_remove_user_from_group":"group_remove_user",
         "group_workflow_create_group":"group_create",
-        "group_workflow_delete_group":"group_delete"
+        "group_workflow_delete_group":"group_delete",
+        "group_workflow_get_groups": "group_all",
+        "group_workflow_group_users": "group_user"
     },
     "log_settings":{
         "level":"DEBUG",
