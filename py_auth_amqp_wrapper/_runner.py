@@ -21,7 +21,8 @@ async def run(
     ldap_config: LDAPConfig = None,
     amqp_config: AMQPConfig = AMQPConfig,
     log_config: logging.Logger = None,
-    disable_existing_loggers=False,
+    disable_existing_loggers: bool = False,
+    generate_schema: bool = False,
 ):
     """This Function will run the auth_service
 
@@ -35,6 +36,7 @@ async def run(
         amqp_config (AMQPConfig, optional): Configuration for the AMQP Protocoll. Defaults to AMQPConfig.
         log_config (logging.Logger, optional): If given will configure the root logger. Defaults to None.
         disable_existing_loggers (bool, optional): Disables existing loggers. Defaults to False.
+        generate_schema (bool, optional): Generate the database Schema. Defaults to False.
     """
     await Tortoise.init(
         config={
@@ -47,6 +49,9 @@ async def run(
             },
         }
     )
+
+    if generate_schema:
+        await Tortoise.generate_schemas()
 
     logger = logging.getLogger("py_auth_amqp_wrapper")
     if log_config is not None:
@@ -100,6 +105,12 @@ async def run(
     group_workflow_delete_group = new_amqp_func(
         queue_settings["group_workflow_delete_group"], groupwf.delete_group
     )
+    group_workflow_get_groups = new_amqp_func(
+        queue_settings["group_workflow_get_groups"], groupwf.get_groups
+    )
+    group_workflow_group_users = new_amqp_func(
+        queue_settings["group_workflow_group_users"], groupwf.group_members
+    )
 
     @session_workflow_logout.exception_handler(TypeError)
     @session_workflow_login.exception_handler(TypeError)
@@ -123,6 +134,8 @@ async def run(
     @group_workflow_remove_user_from_group.exception_handler(Exception)
     @group_workflow_create_group.exception_handler(Exception)
     @group_workflow_delete_group.exception_handler(Exception)
+    @group_workflow_get_groups.exception_handler(Exception)
+    @group_workflow_group_users.exception_handler(Exception)
     @session_workflow_logout.exception_handler(Exception)
     @session_workflow_login.exception_handler(Exception)
     @session_workflow_get_access_token.exception_handler(Exception)

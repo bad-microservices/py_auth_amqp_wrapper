@@ -58,6 +58,8 @@ def load_config(path_to_file: str) -> dict:
         "group_workflow_remove_user_from_group": "group_remove_user",
         "group_workflow_create_group": "group_create",
         "group_workflow_delete_group": "group_delete",
+        "group_workflow_get_groups": "group_all",
+        "group_workflow_group_users": "group_user",
     }
 
     if jwt_validation is not None:
@@ -86,7 +88,6 @@ def load_config(path_to_file: str) -> dict:
         config_dict["jwt_validator"] = jwt_validator
 
     if jwt_creation is not None:
-
         # get secret for signing
         key_type = jwt_creation["secret"]["type"]
         secret_value = jwt_creation["secret"]["value"]
@@ -130,7 +131,6 @@ def load_config(path_to_file: str) -> dict:
             default_queue_names[key] = value
 
     if log_settings is not None:
-
         LEVELMAP = {
             "NOTSET": logging.NOTSET,
             "DEBUG": logging.DEBUG,
@@ -156,7 +156,10 @@ def load_config(path_to_file: str) -> dict:
             handler_settings = {"amqp_config": amqp_settings}
 
         config_dict["log_config"] = {
-            "log_level": level, "handler": handler, "handler_config": handler_settings}
+            "log_level": level,
+            "handler": handler,
+            "handler_config": handler_settings,
+        }
 
     config_dict["queue_settings"] = default_queue_names
 
