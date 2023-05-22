@@ -1,6 +1,8 @@
 # Changelog
 
 ## 0.0.7
+* BUGFIX: forgot to register `GroupWorkflow.group_members` and `GroupWorkflow.get_groups`
+## 0.0.7
 * `GroupWorkflow.group_members` implemented
   * `group_workflow_group_members` is config key for queue name
 * `GroupWorkflow.get_groups` implemented

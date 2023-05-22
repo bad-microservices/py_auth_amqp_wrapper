@@ -158,7 +158,9 @@ async def run(
     await service.register_function(group_workflow_remove_user_from_group)
     await service.register_function(group_workflow_create_group)
     await service.register_function(group_workflow_delete_group)
-
+    await service.register_function(group_workflow_get_groups)    
+    await service.register_function(group_workflow_group_users)
+    
     await service.serve()
 
     return
